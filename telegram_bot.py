@@ -932,4 +932,5 @@ dispatcher.add_handler(CommandHandler('activate', activate_token,
 dispatcher.add_handler(new_tg_account_handler)
 dispatcher.add_handler(start_posting_handler)
 dispatcher.add_handler(edit_tasks_handler)
+dispatcher.add_handler(edit_api_settings_handler)
 dispatcher.add_error_handler(error_callback)
