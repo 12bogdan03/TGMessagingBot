@@ -1,0 +1,17 @@
+asn1crypto==0.24.0
+async-generator==1.10
+certifi==2018.10.15
+cffi==1.11.5
+cryptography==2.4.1
+future==0.17.1
+idna==2.7
+pyaes==1.6.1
+pyasn1==0.4.4
+pycparser==2.19
+python-decouple==3.1
+python-telegram-bot==11.1.0
+rsa==4.0
+schedule==0.5.0
+six==1.11.0
+SQLAlchemy==1.2.14
+Telethon-sync==1.1.1
