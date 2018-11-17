@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 import config
 
-engine = create_engine(config.DATABASE_URI, connect_args={'check_same_thread': False})
+engine = create_engine(config.DATABASE_URI)
 
 Base = declarative_base()
 
