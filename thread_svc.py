@@ -56,7 +56,7 @@ def perform_task(task):
 
 def posting_messages():
     active_tasks = session.query(Task).filter(
-                       bool(Task.active) is True
+                       Task.active == True
                    ).all()
     deactivated_users = []
     if active_tasks:
@@ -68,7 +68,7 @@ def posting_messages():
             token = task.user.token
 
             if token and token.valid_until >= datetime.date.today():
-                if task.last_message_date is not None:
+                if task.last_message_date != None:
                     delta = datetime.datetime.now() - task.last_message_date
                     minutes = (delta.days * 86400 + delta.seconds) // 60
                     if minutes >= task.interval:
