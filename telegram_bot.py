@@ -114,7 +114,7 @@ def edit_api_settings(bot, update):
                               "API ID and API HASH in the following "
                               "form or /cancel :\n"
                               "`api_id api_hash`\n"
-                              "For example:"
+                              "For example:\n"
                               "`456634 sf23h22jj2l1l3n32n41mm121`",
                               parse_mode=ParseMode.MARKDOWN)
     return EDIT_API
