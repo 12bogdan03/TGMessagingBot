@@ -113,9 +113,9 @@ def edit_api_settings(bot, update):
     update.message.reply_text("Please, send me new Telegram "
                               "API ID and API HASH in the following "
                               "form or /cancel :\n"
-                              "```api_id api_hash```\n"
+                              "`api_id api_hash`\n"
                               "For example:"
-                              "```456634 sf23h22jj2l1l3n32n41mm121```",
+                              "`456634 sf23h22jj2l1l3n32n41mm121`",
                               parse_mode=ParseMode.MARKDOWN)
     return EDIT_API
 
