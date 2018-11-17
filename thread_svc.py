@@ -2,7 +2,6 @@ import time
 import os
 import threading
 import datetime
-from functools import wraps
 
 import schedule
 from telethon import TelegramClient
@@ -40,10 +39,10 @@ def perform_task(task):
     groups = session.query(TelegramGroup).filter(
         TelegramGroup.task == task
     ).all()
-    client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR,
-                                         task.session.phone_number),
-                            config.TELEGRAM_API_ID,
-                            config.TELEGRAM_API_HASH)
+
+    client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR, task.session.phone_number),
+                            task.user.api_id if task.user.api_id else config.TELEGRAM_API_ID,
+                            task.user.api_hash if task.user.api_hash else config.TELEGRAM_API_HASH)
     client.connect()
 
     for group in groups:

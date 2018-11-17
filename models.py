@@ -25,6 +25,8 @@ class User(Base):
     tg_id = Column(Integer, primary_key=True)
     token_id = Column(Integer, ForeignKey('token.id'))
     token = relationship('Token')
+    api_id = Column(Integer)
+    api_hash = Column(String)
 
     def __init__(self, tg_id, token=None):
         self.tg_id = tg_id

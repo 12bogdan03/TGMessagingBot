@@ -18,7 +18,7 @@ dispatcher = updater.dispatcher
 # Conversation states
 LOGIN_CODE, SELECT_ACCOUNT, MESSAGE, INTERVAL, LIST_GROUPS, \
     SELECT_GROUPS, START_TASK, SELECT_TASK, TASK_MENU, EDIT_MESSAGE, \
-    EDIT_INTERVAL, EDIT_GROUPS = range(12)
+    EDIT_INTERVAL, EDIT_GROUPS, EDIT_API = range(13)
 
 
 def start(bot, update):
@@ -91,10 +91,58 @@ def activate_token(bot, update, args):
                                       "until: `{}`".format(valid_until_f),
                                       parse_mode=ParseMode.MARKDOWN)
         else:
-            update.message.reply_text("Your token is invalid.",
-                                      parse_mode=ParseMode.MARKDOWN)
+            update.message.reply_text("Your token is invalid.")
     else:
         update.message.reply_text("Please, send me the token.")
+
+
+def edit_api_settings(bot, update):
+    user = session.query(User).filter(
+        User.tg_id == update.message.chat_id
+    ).first()
+    if user.api_id and user.api_hash:
+        update.message.reply_text("Current Telegram API settings:\n"
+                                  "*API ID* `{}`\n"
+                                  "*API HASH* `{}`".format(user.api_id,
+                                                           user.api_hash),
+                                  parse_mode=ParseMode.MARKDOWN)
+    else:
+        update.message.reply_text("Current Telegram API settings:\n"
+                                  "```default```",
+                                  parse_mode=ParseMode.MARKDOWN)
+    update.message.reply_text("Please, send me new Telegram "
+                              "API ID and API HASH in the following "
+                              "form or /cancel :\n"
+                              "```api_id api_hash```\n"
+                              "For example:"
+                              "```456634 sf23h22jj2l1l3n32n41mm121```",
+                              parse_mode=ParseMode.MARKDOWN)
+    return EDIT_API
+
+
+def new_api_settings(bot, update):
+    user = session.query(User).filter(
+        User.tg_id == update.message.chat_id
+    ).first()
+    try:
+        api_id, api_hash = update.message.text.split()
+        api_id = int(api_id)
+        user.api_id = api_id
+        user.api_hash = api_hash
+        session.commit()
+        update.message.reply_text("New Telegram API settings saved.",
+                                  parse_mode=ParseMode.MARKDOWN)
+        return ConversationHandler.END
+    except ValueError:
+        update.message.reply_text("You've entered data in wrong format.\n\n"
+                                  "Please, send me new Telegram "
+                                  "API ID and API HASH in the following "
+                                  "form or /cancel :\n"
+                                  "```api_id api_hash```\n"
+                                  "For example:"
+                                  "```456634 sf23h22jj2l1l3n32n41mm121```",
+                                  parse_mode=ParseMode.MARKDOWN)
+        return EDIT_API
 
 
 def cancel(bot, update):
@@ -110,8 +158,8 @@ def add_account(bot, update, args, user_data):
             User.tg_id == update.message.chat_id
         ).first()
         client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR, phone_number),
-                                config.TELEGRAM_API_ID,
-                                config.TELEGRAM_API_HASH)
+                                user.api_id if user.api_id else config.TELEGRAM_API_ID,
+                                user.api_hash if user.api_hash else config.TELEGRAM_API_HASH)
         client.connect()
 
         result = client.send_code_request(phone_number, force_sms=True)
@@ -137,10 +185,12 @@ def confirm_tg_account(bot, update, user_data):
     tg_session = session.query(TelegramSession).filter(
         TelegramSession.id == int(user_data['session_id'])
     ).first()
-    client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR,
-                                         tg_session.phone_number),
-                            config.TELEGRAM_API_ID,
-                            config.TELEGRAM_API_HASH)
+    user = session.query(User).filter(
+        User.tg_id == update.message.chat_id
+    ).first()
+    client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR, tg_session.phone_number),
+                            user.api_id if user.api_id else config.TELEGRAM_API_ID,
+                            user.api_hash if user.api_hash else config.TELEGRAM_API_HASH)
     client.connect()
 
     try:
@@ -264,10 +314,12 @@ def interval(bot, update, user_data):
         task.interval = int(value)
         session.commit()
 
-        client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR,
-                                             task.session.phone_number),
-                                config.TELEGRAM_API_ID,
-                                config.TELEGRAM_API_HASH)
+        user = session.query(User).filter(
+            User.tg_id == update.message.chat_id
+        ).first()
+        client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR, task.session.phone_number),
+                                user.api_id if user.api_id else config.TELEGRAM_API_ID,
+                                user.api_hash if user.api_hash else config.TELEGRAM_API_HASH)
         client.connect()
         dialogs = client.get_dialogs()
         client.disconnect()
@@ -620,10 +672,12 @@ def task_menu(bot, update, user_data):
                               timeout=30)
         return EDIT_INTERVAL
     elif query.data == 'edit_groups':
-        client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR,
-                                             task.session.phone_number),
-                                config.TELEGRAM_API_ID,
-                                config.TELEGRAM_API_HASH)
+        user = session.query(User).filter(
+            User.tg_id == update.message.chat_id
+        ).first()
+        client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR, task.session.phone_number),
+                                user.api_id if user.api_id else config.TELEGRAM_API_ID,
+                                user.api_hash if user.api_hash else config.TELEGRAM_API_HASH)
         client.connect()
         dialogs = client.get_dialogs()
         client.disconnect()
@@ -833,6 +887,14 @@ new_tg_account_handler = ConversationHandler(
     states={
         LOGIN_CODE: [MessageHandler(Filters.text, confirm_tg_account,
                                     pass_user_data=True)]
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+)
+
+edit_api_settings_handler = ConversationHandler(
+    entry_points=[CommandHandler('edit_api', edit_api_settings)],
+    states={
+        EDIT_API: [MessageHandler(Filters.text, new_api_settings)]
     },
     fallbacks=[CommandHandler('cancel', cancel)]
 )
