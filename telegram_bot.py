@@ -38,7 +38,9 @@ ADMINS_HELP_TEXT = "<b>ADMINS ONLY</b> \n" \
                    "be valid for the next <code>[number of days]</code> \n" \
                    "/list_tokens - get a list of valid tokens \n" \
                    "/add_admin <code>[telegram id]</code> - grant admin role for user with " \
-                   "<code>[telegram id]</code>"
+                   "<code>[telegram id]</code> \n" \
+                   "/remove_token <code>[token]</code> - remove token. All tasks of users, " \
+                   "using this token, will be deactivated."
 
 
 def start(bot, update):
@@ -116,6 +118,28 @@ def activate_token(bot, update, args):
                                       parse_mode=ParseMode.MARKDOWN)
         else:
             update.message.reply_text("Your token is invalid.")
+    else:
+        update.message.reply_text("Please, send me the token.")
+
+
+@restricted
+def remove_token(bot, update, args):
+    if len(args) == 1:
+        token_input = args[0]
+        token = session.query(Token).filter(
+            Token.value == token_input
+        ).first()
+
+        if token:
+            session.query(User).filter(User.token == token).\
+                update({User.token: None})
+            session.commit()
+            session.delete(token)
+            session.commit()
+            update.message.reply_text("Token deleted.",
+                                      parse_mode=ParseMode.MARKDOWN)
+        else:
+            update.message.reply_text("This token doesn't exist.")
     else:
         update.message.reply_text("Please, send me the token.")
 
@@ -1050,6 +1074,8 @@ edit_tasks_handler = ConversationHandler(
 dispatcher.add_handler(CommandHandler('start', start))
 dispatcher.add_handler(CommandHandler('list_tokens', list_valid_tokens))
 dispatcher.add_handler(CommandHandler('token', generate_token,
+                                      pass_args=True))
+dispatcher.add_handler(CommandHandler('remove_token', remove_token,
                                       pass_args=True))
 dispatcher.add_handler(CommandHandler('activate', activate_token,
                                       pass_args=True))
