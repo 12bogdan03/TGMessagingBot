@@ -131,8 +131,11 @@ def remove_token(bot, update, args):
         ).first()
 
         if token:
-            session.query(User).filter(User.token == token).\
-                update({User.token: None})
+            users_with_token = session.query(User).filter(
+                User.token == token
+            ).all()
+            for u in users_with_token:
+                u.token = None
             session.commit()
             session.delete(token)
             session.commit()
