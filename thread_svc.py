@@ -70,8 +70,8 @@ def posting_messages():
             if token and token.valid_until >= datetime.date.today():
                 if task.last_message_date != None:
                     delta = datetime.datetime.now() - task.last_message_date
-                    minutes = (delta.days * 86400 + delta.seconds) // 60
-                    if minutes >= task.interval:
+                    seconds_passed = delta.total_seconds()
+                    if seconds_passed > task.interval * 60:
                         perform_task(task)
                         groups = session.query(TelegramGroup).filter(
                             TelegramGroup.task == task
