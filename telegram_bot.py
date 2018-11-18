@@ -751,13 +751,19 @@ def task_menu(bot, update, user_data):
         return EDIT_INTERVAL
     elif query.data == 'edit_groups':
         user = session.query(User).filter(
-            User.tg_id == update.message.chat_id
+            User.tg_id == query.message.chat_id
         ).first()
         client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR, task.session.phone_number),
                                 user.api_id if user.api_id else config.TELEGRAM_API_ID,
                                 user.api_hash if user.api_hash else config.TELEGRAM_API_HASH)
         client.connect()
-        dialogs = client.get_dialogs()
+
+        try:
+            dialogs = client.get_dialogs()
+        except Exception as e:
+            update.message.reply_text('Error happened. Can\'t get groups.')
+            config.logger.exception(e)
+            return ConversationHandler.END
         client.disconnect()
         groups = [{'id': i.id, 'title': i.title}
                   for i in dialogs if i.is_group]
