@@ -205,38 +205,42 @@ def add_account(bot, update, args, user_data):
 
 def remove_account(bot, update, args):
     if len(args) == 1:
-        phone_number = args[0]
-        user = session.query(User).filter(
-            User.tg_id == update.message.chat_id
-        ).first()
-        path = os.path.join(config.TELETHON_SESSIONS_DIR, f'{phone_number}.session')
-        tg_session = session.query(TelegramSession).filter(
-            TelegramSession.phone_number == phone_number,
-            TelegramSession.user == user
-        ).first()
-        if tg_session:
-            tasks = session.query(Task).filter(
-                Task.session == tg_session
-            ).all()
-            if tasks:
-                for task in tasks:
-                    groups = session.query(TelegramGroup).filter(
-                        TelegramGroup.task == task
-                    ).all()
-                    if groups:
-                        for group in groups:
-                            session.delete(group)
-                        session.commit()
-                    session.delete(task)
+        try:
+            phone_number = args[0]
+            user = session.query(User).filter(
+                User.tg_id == update.message.chat_id
+            ).first()
+            path = os.path.join(config.TELETHON_SESSIONS_DIR, f'{phone_number}.session')
+            tg_session = session.query(TelegramSession).filter(
+                TelegramSession.phone_number == phone_number,
+                TelegramSession.user == user
+            ).first()
+            if tg_session:
+                tasks = session.query(Task).filter(
+                    Task.session == tg_session
+                ).all()
+                if tasks:
+                    for task in tasks:
+                        groups = session.query(TelegramGroup).filter(
+                            TelegramGroup.task == task
+                        ).all()
+                        if groups:
+                            for group in groups:
+                                session.delete(group)
+                            session.commit()
+                        session.delete(task)
+                    session.commit()
+                session.delete(tg_session)
                 session.commit()
-            session.delete(tg_session)
-            session.commit()
 
-            if os.path.exists(path):
-                os.remove(path)
-        else:
-            update.message.reply_text("I can't find Telegram account with this "
-                                      "phone number.")
+                if os.path.exists(path):
+                    os.remove(path)
+            else:
+                update.message.reply_text("I can't find Telegram account with this "
+                                          "phone number.")
+        except Exception as e:
+            config.logger.exception(e)
+            update.message.reply_text('Error: {}'.format(e))
     else:
         update.message.reply_text("Please, include the phone number to this "
                                   "command.")
