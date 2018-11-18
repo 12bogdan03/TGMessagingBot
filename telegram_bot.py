@@ -325,7 +325,7 @@ def interval(bot, update, user_data):
             dialogs = client.get_dialogs()
         except Exception as e:
             update.message.reply_text('Error happened. Can\'t get groups.')
-            task.delete()
+            session.delete(task)
             session.commit()
             config.logger.exception(e)
             return ConversationHandler.END
@@ -358,7 +358,7 @@ def interval(bot, update, user_data):
         else:
             update.message.reply_text('This account doesn\'t have any groups. '
                                       'Try using another account via /start_posting')
-            task.delete()
+            session.delete(task)
             session.commit()
             return ConversationHandler.END
     else:
@@ -452,7 +452,7 @@ def select_groups(bot, update, user_data):
                             TelegramGroup.task == task,
                             TelegramGroup.tg_id == int(query.data.strip('+'))
                         ).first()
-            session.delete(tg_group )
+            session.delete(tg_group)
             session.commit()
         else:
             title = next(i['title'] for i in user_data['groups']
