@@ -183,7 +183,7 @@ def add_account(bot, update, args, user_data):
         ).first()
         tg_sessions = session.query(TelegramSession).filter(
             TelegramSession.user == user
-        ).first()
+        ).all()
         phone_numbers = [s.phone_number for s in tg_sessions]
         if phone_number in phone_numbers:
             update.message.reply_text("Sorry, this phone number already exists.")
