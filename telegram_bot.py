@@ -32,7 +32,13 @@ HELP_TEXT = "<b>List of available commands</b>\n" \
             "/start_posting - create new task for sending messages to groups " \
             "from one of your Telegram accounts.\n" \
             "/my_tasks - list all your tasks. You can control your tasks with this " \
-            "command (stop|start, edit message, interval, groups)"
+            "command (stop|start, edit message, interval, groups)\n\n"
+ADMINS_HELP_TEXT = "<b>ADMINS ONLY<b>\n" \
+                   "/token <code>[number of days]</code> - generate a new token, that will " \
+                   "be valid for the next [number of days]\n" \
+                   "/list_tokens - get a list of valid tokens\n" \
+                   "/add_admin <code>[telegram id]</code> - grant admin priviledges for user with " \
+                   "<code>[telegram id]</code"
 
 
 def start(bot, update):
@@ -48,9 +54,9 @@ def start(bot, update):
                               "[<code>{}</code>]".format(update.message.from_user.username,
                                                          update.message.chat_id),
                               parse_mode=ParseMode.HTML)
-    update.message.reply_text(HELP_TEXT,
+    help_text = HELP_TEXT+ADMINS_HELP_TEXT if user.is_admin else HELP_TEXT
+    update.message.reply_text(help_text,
                               parse_mode=ParseMode.HTML)
-
 
 
 @restricted
@@ -946,7 +952,11 @@ def edit_groups(bot, update, user_data):
 
 
 def instructions(bot, update):
-    update.message.reply_text(HELP_TEXT,
+    user = session.query(User).filter(
+        User.tg_id == update.message.chat_id
+    ).first()
+    help_text = HELP_TEXT+ADMINS_HELP_TEXT if user.is_admin else HELP_TEXT
+    update.message.reply_text(help_text,
                               parse_mode=ParseMode.HTML)
 
 
@@ -1020,6 +1030,8 @@ dispatcher.add_handler(CommandHandler('token', generate_token,
 dispatcher.add_handler(CommandHandler('activate', activate_token,
                                       pass_args=True))
 dispatcher.add_handler(CommandHandler('help', instructions))
+dispatcher.add_handler(CommandHandler('add_admin', add_admin))
+dispatcher.add_handler(CommandHandler('remove', remove_account))
 dispatcher.add_handler(new_tg_account_handler)
 dispatcher.add_handler(start_posting_handler)
 dispatcher.add_handler(edit_tasks_handler)
