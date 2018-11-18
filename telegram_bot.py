@@ -21,6 +21,20 @@ LOGIN_CODE, SELECT_ACCOUNT, MESSAGE, INTERVAL, LIST_GROUPS, \
     EDIT_INTERVAL, EDIT_GROUPS, EDIT_API = range(13)
 
 
+HELP_TEXT = "<b>List of available commands</b>\n" \
+            "/activate <code>[token]</code> - activate your account.\n" \
+            "/add_account <code>[phone number]</code> - add new Telegram account, " \
+            "that will be used for posting messages.\n" \
+            "/remove <code>[phone number]</code> - remove one of your Telegram accounts\n" \
+            "/edit_api - use this to change default " \
+            "Telegram API ID and API HASH. You can get it from " \
+            "https://my.telegram.org/auth \n" \
+            "/start_posting - create new task for sending messages to groups " \
+            "from one of your Telegram accounts.\n" \
+            "/my_tasks - list all your tasks. You can control your tasks with this " \
+            "command (stop|start, edit message, interval, groups)"
+
+
 def start(bot, update):
     user = session.query(User).filter(
         User.tg_id == update.message.chat_id
@@ -29,10 +43,14 @@ def start(bot, update):
         user = User(tg_id=update.message.chat_id)
         session.add(user)
         session.commit()
+
     update.message.reply_text("Hello, @{} "
                               "[<code>{}</code>]".format(update.message.from_user.username,
                                                          update.message.chat_id),
                               parse_mode=ParseMode.HTML)
+    update.message.reply_text(HELP_TEXT,
+                              parse_mode=ParseMode.HTML)
+
 
 
 @restricted
@@ -177,6 +195,45 @@ def add_account(bot, update, args, user_data):
         update.message.reply_text("Please, include the phone number to this "
                                   "command.")
         return ConversationHandler.END
+
+
+def remove_account(bot, update, args):
+    if len(args) == 1:
+        phone_number = args[0]
+        user = session.query(User).filter(
+            User.tg_id == update.message.chat_id
+        ).first()
+        path = os.path.join(config.TELETHON_SESSIONS_DIR, f'{phone_number}.session')
+        tg_session = session.query(TelegramSession).filter(
+            TelegramSession.phone_number == phone_number,
+            TelegramSession.user == user
+        ).first()
+        if tg_session:
+            tasks = session.query(Task).filter(
+                Task.session == tg_session
+            ).all()
+            if tasks:
+                for task in tasks:
+                    groups = session.query(TelegramGroup).filter(
+                        TelegramGroup.task == task
+                    ).all()
+                    if groups:
+                        for group in groups:
+                            session.delete(group)
+                        session.commit()
+                    session.delete(task)
+                session.commit()
+            session.delete(tg_session)
+            session.commit()
+
+            if os.path.exists(path):
+                os.remove(path)
+        else:
+            update.message.reply_text("I can't find Telegram account with this "
+                                      "phone number.")
+    else:
+        update.message.reply_text("Please, include the phone number to this "
+                                  "command.")
 
 
 @token_needed
@@ -888,9 +945,30 @@ def edit_groups(bot, update, user_data):
         return EDIT_GROUPS
 
 
-# def instructions(bot, update):
-#     text = "/activate `[token]` - activate your account.\n" \
-#            "/"
+def instructions(bot, update):
+    update.message.reply_text(HELP_TEXT,
+                              parse_mode=ParseMode.HTML)
+
+
+def add_admin(bot, update, args):
+    if len(args) == 1:
+        if args[0].isdigit():
+            tg_id = int(args[0])
+            user = session.query(User).filter(
+                User.tg_id == tg_id
+            ).first()
+            if user:
+                user.is_admin = True
+                session.commit()
+                update.message.reply_text("User [<code>{}</code>] is an "
+                                          "admin now.".format(tg_id),
+                                          parse_mode=ParseMode.HTML)
+            else:
+                update.message.reply_text("I can't find user with this id.")
+        else:
+            update.message.reply_text("Please, send me valid user id.")
+    else:
+        update.message.reply_text("Please, send me the user id.")
 
 
 new_tg_account_handler = ConversationHandler(
@@ -941,6 +1019,7 @@ dispatcher.add_handler(CommandHandler('token', generate_token,
                                       pass_args=True))
 dispatcher.add_handler(CommandHandler('activate', activate_token,
                                       pass_args=True))
+dispatcher.add_handler(CommandHandler('help', instructions))
 dispatcher.add_handler(new_tg_account_handler)
 dispatcher.add_handler(start_posting_handler)
 dispatcher.add_handler(edit_tasks_handler)

@@ -27,6 +27,7 @@ class User(Base):
     token = relationship('Token')
     api_id = Column(Integer)
     api_hash = Column(String(100))
+    is_admin = Column(Boolean, default=False)
 
     def __init__(self, tg_id, token=None):
         self.tg_id = tg_id

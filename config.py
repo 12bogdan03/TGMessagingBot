@@ -18,5 +18,3 @@ TELEGRAM_API_ID = config('TELEGRAM_API_ID', cast=int)
 TELEGRAM_API_HASH = config('TELEGRAM_API_HASH')
 TELETHON_SESSIONS_DIR = os.path.join(BASEDIR, 'telethon_sessions')
 LOGS_GROUP_ID = config('LOGS_GROUP_ID', cast=int)
-
-ADMINS = config('ADMINS', cast=Csv(int))

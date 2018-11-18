@@ -19,7 +19,11 @@ def restricted(func):
     @wraps(func)
     def wrapped(bot, update, *args, **kwargs):
         user_id = update.effective_user.id
-        if user_id not in config.ADMINS:
+        admins = session.query(User).filter(
+            User.is_admin == True
+        ).all()
+        admin_ids = [i.tg_id for i in admins]
+        if user_id not in admin_ids:
             config.logger.warning("Unauthorized access denied "
                                   "for {}.".format(user_id))
             return
