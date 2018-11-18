@@ -78,7 +78,7 @@ def posting_messages():
                         ).all()
                         bot.send_message(config.LOGS_GROUP_ID,
                                          'User [{}] task completed. Message sent to '
-                                         '{} groups.'.format(token.user.tg_id,
+                                         '{} groups.'.format(task.user.tg_id,
                                                              len(groups)))
                     else:
                         continue
@@ -89,7 +89,7 @@ def posting_messages():
                     ).all()
                     bot.send_message(config.LOGS_GROUP_ID,
                                      'User [{}] task completed. Message sent to '
-                                     '{} groups.'.format(token.user.tg_id,
+                                     '{} groups.'.format(task.user.tg_id,
                                                          len(groups)))
             else:
                 deactivated_users.append(task.user)
@@ -102,4 +102,4 @@ def posting_messages():
                                       'All tasks are deactivated.')
                 bot.send_message(config.LOGS_GROUP_ID,
                                  'User [{}] token is invalid. All tasks '
-                                 'deactivated.'.format(token.user.tg_id))
+                                 'deactivated.'.format(task.user.tg_id))
