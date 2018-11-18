@@ -321,7 +321,14 @@ def interval(bot, update, user_data):
                                 user.api_id if user.api_id else config.TELEGRAM_API_ID,
                                 user.api_hash if user.api_hash else config.TELEGRAM_API_HASH)
         client.connect()
-        dialogs = client.get_dialogs()
+        try:
+            dialogs = client.get_dialogs()
+        except Exception as e:
+            update.message.reply_text('Error happened. Can\'t get groups.')
+            task.delete()
+            session.commit()
+            config.logger.exception(e)
+            return ConversationHandler.END
         client.disconnect()
         groups = [{'id': i.id, 'title': i.title}
                   for i in dialogs if i.is_group]
@@ -879,6 +886,11 @@ def edit_groups(bot, update, user_data):
                                       reply_markup=reply_markup,
                                       timeout=30)
         return EDIT_GROUPS
+
+
+# def instructions(bot, update):
+#     text = "/activate `[token]` - activate your account.\n" \
+#            "/"
 
 
 new_tg_account_handler = ConversationHandler(
