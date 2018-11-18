@@ -33,12 +33,12 @@ HELP_TEXT = "<b>List of available commands</b>\n" \
             "from one of your Telegram accounts.\n" \
             "/my_tasks - list all your tasks. You can control your tasks with this " \
             "command (stop|start, edit message, interval, groups)\n\n"
-ADMINS_HELP_TEXT = "<b>ADMINS ONLY</b>\n" \
+ADMINS_HELP_TEXT = "<b>ADMINS ONLY</b> \n" \
                    "/token <code>[number of days]</code> - generate a new token, that will " \
-                   "be valid for the next <code>[number of days]</code>\n" \
-                   "/list_tokens - get a list of valid tokens\n" \
+                   "be valid for the next <code>[number of days]</code> \n" \
+                   "/list_tokens - get a list of valid tokens \n" \
                    "/add_admin <code>[telegram id]</code> - grant admin role for user with " \
-                   "<code>[telegram id]</code"
+                   "<code>[telegram id]</code>"
 
 
 def start(bot, update):
