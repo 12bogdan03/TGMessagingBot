@@ -181,6 +181,13 @@ def add_account(bot, update, args, user_data):
         user = session.query(User).filter(
             User.tg_id == update.message.chat_id
         ).first()
+        tg_sessions = session.query(TelegramSession).filter(
+            TelegramSession.user == user
+        ).first()
+        phone_numbers = [s.phone_number for s in tg_sessions]
+        if phone_number in phone_numbers:
+            update.message.reply_text("Sorry, this phone number already exists.")
+            return ConversationHandler.END
         client = TelegramClient(os.path.join(config.TELETHON_SESSIONS_DIR, phone_number),
                                 user.api_id if user.api_id else config.TELEGRAM_API_ID,
                                 user.api_hash if user.api_hash else config.TELEGRAM_API_HASH)
@@ -271,6 +278,7 @@ def confirm_tg_account(bot, update, user_data):
                             '{}.session'.format(tg_session.phone_number))
         if os.path.exists(path):
             os.remove(path)
+        session.delete(tg_session)
 
     session.commit()
 
