@@ -263,6 +263,10 @@ def confirm_tg_account(bot, update, user_data):
         update.message.reply_text('Account added successfully.')
     except Exception as e:
         update.message.reply_text('Error: {}.'.format(e))
+        path = os.path.join(config.TELETHON_SESSIONS_DIR,
+                            '{}.session'.format(tg_session.phone_number))
+        if os.path.exists(path):
+            os.remove(path)
 
     session.commit()
 
