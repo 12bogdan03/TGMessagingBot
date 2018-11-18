@@ -33,11 +33,11 @@ HELP_TEXT = "<b>List of available commands</b>\n" \
             "from one of your Telegram accounts.\n" \
             "/my_tasks - list all your tasks. You can control your tasks with this " \
             "command (stop|start, edit message, interval, groups)\n\n"
-ADMINS_HELP_TEXT = "<b>ADMINS ONLY<b>\n" \
+ADMINS_HELP_TEXT = "<b>ADMINS ONLY</b>\n" \
                    "/token <code>[number of days]</code> - generate a new token, that will " \
-                   "be valid for the next [number of days]\n" \
+                   "be valid for the next <code>[number of days]</code>\n" \
                    "/list_tokens - get a list of valid tokens\n" \
-                   "/add_admin <code>[telegram id]</code> - grant admin priviledges for user with " \
+                   "/add_admin <code>[telegram id]</code> - grant admin role for user with " \
                    "<code>[telegram id]</code"
 
 
@@ -1030,8 +1030,8 @@ dispatcher.add_handler(CommandHandler('token', generate_token,
 dispatcher.add_handler(CommandHandler('activate', activate_token,
                                       pass_args=True))
 dispatcher.add_handler(CommandHandler('help', instructions))
-dispatcher.add_handler(CommandHandler('add_admin', add_admin))
-dispatcher.add_handler(CommandHandler('remove', remove_account))
+dispatcher.add_handler(CommandHandler('add_admin', add_admin, pass_args=True))
+dispatcher.add_handler(CommandHandler('remove', remove_account, pass_args=True))
 dispatcher.add_handler(new_tg_account_handler)
 dispatcher.add_handler(start_posting_handler)
 dispatcher.add_handler(edit_tasks_handler)
