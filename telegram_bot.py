@@ -242,6 +242,8 @@ def remove_account(bot, update, args):
 
                 if os.path.exists(path):
                     os.remove(path)
+
+                update.message.reply_text("Account deleted.")
             else:
                 update.message.reply_text("I can't find Telegram account with this "
                                           "phone number.")
