@@ -264,6 +264,7 @@ def remove_account(bot, update, args):
                             session.commit()
                         session.delete(task)
                     session.commit()
+                session.refresh(tg_session)
                 session.delete(tg_session)
                 session.commit()
 
