@@ -120,7 +120,8 @@ def activate_token(bot, update, args):
             update.message.reply_text("Your token is invalid.")
     else:
         update.message.reply_text("Please, send me the token in the following form:\n"
-                                  "/activate <code>[token]</code>")
+                                  "/activate <code>[token]</code>",
+                                  parse_mode=ParseMode.HTML)
 
 
 @restricted
