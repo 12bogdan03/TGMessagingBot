@@ -44,9 +44,16 @@ def perform_task(task):
                             task.user.api_id if task.user.api_id else config.TELEGRAM_API_ID,
                             task.user.api_hash if task.user.api_hash else config.TELEGRAM_API_HASH)
     client.connect()
-
-    for group in groups:
-        send_message_to_group(client, task.message, group)
+    try:
+        for group in groups:
+            send_message_to_group(client, task.message, group)
+    except Exception as e:
+        config.logger.exception(e)
+        bot.send_message(task.user.tg_id,
+                         'It seems like your account {0} is broken. Try '
+                         'to /remove {0} it and /add_account '
+                         '{0} again.'.format(task.session.phone_number))
+        task.active = False
 
     task.last_message_date = datetime.datetime.now()
     session.commit()
